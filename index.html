@@ -6,9 +6,8 @@
     <title>Premium Diagnostic</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+   
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
     <style>
         :root {
             --bg-color: #050505;
@@ -22,9 +21,7 @@
             --font-body: 'Inter', sans-serif;
             --transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
         }
-
         * { box-sizing: border-box; margin: 0; padding: 0; }
-
         body {
             background-color: var(--bg-color);
             color: var(--text-main);
@@ -36,14 +33,12 @@
             background-image: radial-gradient(circle at 50% 10%, #1a1a1a 0%, #050505 60%);
             padding: 20px;
         }
-
         /* --- Main Container --- */
         .container {
             width: 100%;
             max-width: 600px;
             position: relative;
         }
-
         .intro-text {
             text-align: center;
             font-family: var(--font-head);
@@ -54,7 +49,6 @@
             letter-spacing: 0.5px;
             opacity: 0.8;
         }
-
         /* --- Card Styling --- */
         .form-card {
             background: var(--card-bg);
@@ -69,7 +63,6 @@
             flex-direction: column;
             justify-content: center;
         }
-
         /* --- Progress Bar --- */
         .progress-container {
             position: absolute;
@@ -87,7 +80,6 @@
             width: 0%;
             transition: width 0.5s ease;
         }
-
         /* --- Typography --- */
         h2 {
             font-family: var(--font-head);
@@ -96,7 +88,6 @@
             margin-bottom: 30px;
             line-height: 1.3;
         }
-
         .seriousness-note {
             font-family: var(--font-body);
             color: var(--accent);
@@ -107,12 +98,10 @@
             display: block;
             opacity: 0.9;
         }
-
         label {
             display: block;
             cursor: pointer;
         }
-
         /* --- Input Styles --- */
         input[type="text"], input[type="email"], textarea {
             width: 100%;
@@ -126,20 +115,16 @@
             outline: none;
             transition: var(--transition);
         }
-
         input[type="text"]:focus, input[type="email"]:focus, textarea:focus {
             border-bottom-color: var(--accent);
         }
-
         textarea { resize: none; min-height: 80px; }
-
         /* --- Custom Radio/Checkbox Cards --- */
         .option-group {
             display: flex;
             flex-direction: column;
             gap: 12px;
         }
-
         .custom-option {
             position: relative;
             padding: 15px 20px;
@@ -151,13 +136,11 @@
             font-size: 0.95rem;
             color: var(--text-muted);
         }
-
         .custom-option:hover {
             border-color: rgba(255,255,255,0.4);
             background: rgba(255,255,255,0.02);
             color: var(--text-main);
         }
-
         /* Hide default input */
         .custom-option input {
             position: absolute;
@@ -166,14 +149,12 @@
             height: 0;
             width: 0;
         }
-
         /* Selected State */
         .custom-option.selected {
             border-color: var(--text-main);
             background: rgba(255,255,255,0.08);
             color: var(--text-main);
         }
-
         /* Checkmark/Radio indicator */
         .indicator {
             width: 18px;
@@ -186,17 +167,14 @@
             justify-content: center;
             transition: var(--transition);
         }
-
         /* Box indicator for checkboxes */
         input[type="checkbox"] ~ .indicator {
             border-radius: 4px;
         }
-
         .custom-option.selected .indicator {
             border-color: var(--text-main);
             background: var(--text-main);
         }
-
         /* --- Star Rating --- */
         .star-rating-group {
             margin-bottom: 25px;
@@ -224,7 +202,6 @@
         .stars input:checked ~ label {
             color: var(--accent);
         }
-
         /* --- Navigation Buttons --- */
         .nav-buttons {
             display: flex;
@@ -232,7 +209,6 @@
             margin-top: 40px;
             align-items: center;
         }
-
         button {
             background: none;
             border: none;
@@ -246,7 +222,6 @@
             letter-spacing: 1px;
             text-transform: uppercase;
         }
-
         button.primary {
             background: var(--text-main);
             color: var(--bg-color);
@@ -267,7 +242,6 @@
         button.secondary:hover {
             color: var(--text-main);
         }
-
         /* --- Animations --- */
         .step {
             display: none;
@@ -276,12 +250,10 @@
         .step.active {
             display: block;
         }
-
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-
         /* --- Success Message --- */
         #success-message {
             display: none;
@@ -297,7 +269,6 @@
             font-size: 1.1rem;
             margin-bottom: 20px;
         }
-
         /* Mobile Adjustments */
         @media (max-width: 480px) {
             .form-card { padding: 25px; min-height: 350px; }
@@ -306,27 +277,22 @@
     </style>
 </head>
 <body>
-
 <div class="container">
     <div class="intro-text">
         There are no right answers here — only honest ones.
     </div>
-
     <div class="form-card">
         <div class="progress-container"><div class="progress-bar" id="progress-bar"></div></div>
-
         <form id="premiumForm" onsubmit="return false;">
-            
+           
             <div class="step active" data-step="1">
                 <h2>What is your name?</h2>
                 <input type="text" id="q1" placeholder="Type your answer here..." autocomplete="name">
             </div>
-
             <div class="step" data-step="1b">
                 <h2>What is your email?</h2>
                 <input type="email" id="q_email" placeholder="name@example.com" autocomplete="email">
             </div>
-
             <div class="step" data-step="2">
                 <h2>What best describes your business?</h2>
                 <div class="option-group">
@@ -352,7 +318,6 @@
                     </label>
                 </div>
             </div>
-
             <div class="step" data-step="3">
                 <h2>Are you currently running paid ads?</h2>
                 <div class="option-group">
@@ -374,16 +339,14 @@
                     </label>
                 </div>
             </div>
-
             <div class="step" data-step="3b">
                 <h2>Quick note</h2>
                 <p style="color: var(--text-muted); font-size: 1.1rem; line-height: 1.6; font-family: var(--font-body);">
-                    We typically do our best work once paid traffic is active. 
+                    We typically do our best work once paid traffic is active.
                     <br><br>
                     You’re still welcome to continue — just know our feedback may be directional rather than actionable.
                 </p>
             </div>
-
             <div class="step" data-step="4">
                 <h2>Approximate monthly revenue?</h2>
                 <div class="option-group">
@@ -405,7 +368,6 @@
                     </label>
                 </div>
             </div>
-
             <div class="step" data-step="5">
                 <h2>Where does most traffic come from?</h2>
                 <div class="option-group">
@@ -431,7 +393,6 @@
                     </label>
                 </div>
             </div>
-
             <div class="step" data-step="6">
                 <h2>Which feels most true right now?</h2>
                 <div class="option-group">
@@ -453,7 +414,6 @@
                     </label>
                 </div>
             </div>
-
             <div class="step" data-step="7">
                 <h2>When someone lands on your product page, what do you think they feel?</h2>
                 <div class="option-group">
@@ -475,7 +435,6 @@
                     </label>
                 </div>
             </div>
-
             <div class="step" data-step="8">
                 <h2>Where is social proof shown?</h2>
                 <div class="option-group">
@@ -497,11 +456,10 @@
                     </label>
                 </div>
             </div>
-
             <div class="step" data-step="9">
                 <span class="seriousness-note">Answer based on your honest instinct — not what you want to be true.</span>
                 <h2>Rate how quickly a first-time visitor can understand:</h2>
-                
+               
                 <div class="star-rating-group">
                     <span class="star-label">What the product is</span>
                     <div class="stars">
@@ -512,7 +470,6 @@
                         <input type="radio" name="rate_what" id="what1" value="1"><label for="what1">★</label>
                     </div>
                 </div>
-
                 <div class="star-rating-group">
                     <span class="star-label">Who it’s for</span>
                     <div class="stars">
@@ -523,7 +480,6 @@
                         <input type="radio" name="rate_who" id="who1" value="1"><label for="who1">★</label>
                     </div>
                 </div>
-
                 <div class="star-rating-group">
                     <span class="star-label">Why it’s different</span>
                     <div class="stars">
@@ -535,7 +491,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="step" data-step="10">
                 <h2>Which best describes your product page?</h2>
                 <div class="option-group">
@@ -557,7 +512,6 @@
                     </label>
                 </div>
             </div>
-
             <div class="step" data-step="11">
                 <h2>Where do you suspect people hesitate most?</h2>
                 <div class="option-group">
@@ -579,7 +533,6 @@
                     </label>
                 </div>
             </div>
-
             <div class="step" data-step="12">
                 <h2>Which tools do you use?</h2>
                 <div class="option-group">
@@ -601,7 +554,6 @@
                     </label>
                 </div>
             </div>
-
             <div class="step" data-step="13">
                 <h2>Which statement feels closest?</h2>
                 <div class="option-group">
@@ -623,7 +575,6 @@
                     </label>
                 </div>
             </div>
-
              <div class="step" data-step="14">
                 <h2>Why are you requesting this diagnostic?</h2>
                 <div class="option-group">
@@ -645,7 +596,6 @@
                     </label>
                 </div>
             </div>
-
             <div class="step" data-step="15">
                 <h2>If we find a clear issue worth fixing, what are you genuinely open to?</h2>
                 <div class="option-group">
@@ -667,45 +617,40 @@
                     </label>
                 </div>
             </div>
-
             <div class="step" data-step="16">
                 <h2>What would make this diagnostic valuable for you?</h2>
                 <textarea id="valuable_text" placeholder="Short answer..."></textarea>
             </div>
-
             <div class="nav-buttons">
                 <button type="button" class="secondary" id="prevBtn" onclick="nextPrev(-1)">Back</button>
                 <button type="button" class="primary" id="nextBtn" onclick="nextPrev(1)">Next</button>
             </div>
         </form>
-
         <div id="success-message">
             <h2>Thanks.</h2>
             <p>We’re reviewing your responses to identify where confidence breaks in your buying flow.</p>
             <p>If there’s a meaningful opportunity, we’ll share it clearly. <br>If not, we’ll tell you that too.</p>
             <p style="margin-top: 30px; font-weight: 600;">You’ll hear from us within 24–48 hours.</p>
         </div>
-        
+       
         <div id="error-message" style="display:none; text-align:center; color: #ff6b6b; margin-top:20px;">
             <p>Something went wrong. Please refresh and try again.</p>
         </div>
     </div>
 </div>
-
 <script>
+    'use strict';
     // --- Supabase Config ---
     const SUPABASE_URL = 'https://vcwqgerzfjpevhmypvjd.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZjd3FnZXJ6ZmpwZXZobXlwdmpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcwODE4MjAsImV4cCI6MjA4MjY1NzgyMH0.vahzvUUVJyw_ae2Y8TpFrd324Aq3-e92jd55msJzh5I';
-    
+   
     // Initialize Supabase
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false } });
     // --- Form Logic ---
-    let currentTab = 0; 
+    let currentTab = 0;
     const steps = document.getElementsByClassName("step");
-    
+   
     showTab(currentTab);
-
     function showTab(n) {
         // Hide all steps first
         for (let i = 0; i < steps.length; i++) {
@@ -713,39 +658,83 @@
         }
         // Show current step
         steps[n].className += " active";
-
         // Navigation visibility
         if (n == 0) {
             document.getElementById("prevBtn").style.visibility = "hidden";
         } else {
             document.getElementById("prevBtn").style.visibility = "visible";
         }
-
         if (n == (steps.length - 1)) {
             document.getElementById("nextBtn").innerHTML = "Submit";
         } else {
             document.getElementById("nextBtn").innerHTML = "Next";
         }
-
         // Update Progress Bar
         const progress = ((n + 1) / steps.length) * 100;
         document.getElementById("progress-bar").style.width = progress + "%";
     }
-
     function nextPrev(n) {
         // Validation check (Basic)
         if (n == 1) {
             // Check current step inputs
             const currentInputs = steps[currentTab].querySelectorAll("input, textarea");
             let valid = true;
-            // Very basic empty check for text fields if you want, currently loose
-            // You can add specific validation logic here if needed
-        }
+            // Check text, email, and textarea for non-empty
+            currentInputs.forEach(input => {
+                if (input.tagName.toLowerCase() === 'textarea' || input.type === 'text' || input.type === 'email') {
+                    if (input.value.trim() === '') {
+                        valid = false;
+                    }
+                }
+            });
 
+            // Check radio groups (including stars) for at least one selected per group
+            const radioGroups = {};
+            currentInputs.forEach(input => {
+                if (input.type === 'radio') {
+                    if (!radioGroups[input.name]) {
+                        radioGroups[input.name] = false;
+                    }
+                    if (input.checked) {
+                        radioGroups[input.name] = true;
+                    }
+                }
+            });
+            for (let group in radioGroups) {
+                if (!radioGroups[group]) {
+                    valid = false;
+                }
+            }
+
+            // Check checkbox groups for at least one selected per group (e.g., ads, tools)
+            const checkboxGroups = {};
+            currentInputs.forEach(input => {
+                if (input.type === 'checkbox') {
+                    if (!checkboxGroups[input.name]) {
+                        checkboxGroups[input.name] = false;
+                    }
+                    if (input.checked) {
+                        checkboxGroups[input.name] = true;
+                    }
+                }
+            });
+            for (let group in checkboxGroups) {
+                if (!checkboxGroups[group]) {
+                    valid = false;
+                }
+            }
+
+            // Prevent advancing if invalid
+            if (!valid) {
+                // Optional: Add user feedback, e.g., alert or highlight fields
+                alert('Please answer the question before proceeding.');
+                return;
+            }
+        }
         // --- Logic for Soft-fit Step ---
         // Indices have shifted due to the new Email step.
         // 0: Name, 1: Email, 2: Business, 3: Ads, 4: Soft-fit, 5: Revenue
-        
+       
         // Going Forward from Ads (Index 3)
         if (currentTab === 3 && n === 1) {
             const noChecked = document.getElementById('ads-no').checked;
@@ -757,7 +746,6 @@
                 return;
             }
         }
-
         // Going Backward from Revenue (Index 5)
         if (currentTab === 5 && n === -1) {
             const noChecked = document.getElementById('ads-no').checked;
@@ -770,36 +758,34 @@
             }
         }
         // -------------------------------------------
-
         // If submit
         if (currentTab + n >= steps.length) {
             submitForm();
             return false;
         }
-
         currentTab = currentTab + n;
         showTab(currentTab);
     }
-
     async function submitForm() {
         const btn = document.getElementById("nextBtn");
+        const originalText = btn.innerHTML;
         btn.innerHTML = "Submitting...";
         btn.disabled = true;
 
-        // Collect Data
-        const getVal = (id) => document.getElementById(id)?.value || '';
+        // Collect Data (same as before)
+        const getVal = (id) => document.getElementById(id)?.value?.trim() || '';
         const getRadio = (name) => document.querySelector(`input[name="${name}"]:checked`)?.value || null;
         const getMulti = (name) => Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(el => el.value);
         const getInt = (name) => {
             const val = document.querySelector(`input[name="${name}"]:checked`)?.value;
-            return val ? parseInt(val) : null;
+            return val ? parseInt(val, 10) : null;
         };
 
         const formData = {
             user_name: getVal('q1'),
-            user_email: getVal('q_email'), // Added Email
+            user_email: getVal('q_email'),
             business_type: getRadio('business_type'),
-            paid_ads: getMulti('ads'), // Array
+            paid_ads: getMulti('ads'),
             revenue_range: getRadio('revenue'),
             traffic_source: getRadio('traffic'),
             current_feeling: getRadio('feeling'),
@@ -810,7 +796,7 @@
             rating_product_why: getInt('rate_why'),
             product_page_desc: getRadio('pd_desc'),
             hesitation_point: getRadio('hesitation'),
-            tools_used: getMulti('tools'), // Array
+            tools_used: getMulti('tools'),
             data_clarity: getRadio('clarity'),
             diagnostic_reason: getRadio('reason'),
             openness_level: getRadio('openness'),
@@ -818,13 +804,17 @@
         };
 
         try {
-            const { data, error } = await supabase
+            const { data, error } = await supabaseClient
                 .from('diagnostic_submissions')
-                .insert([formData]);
+                .insert([formData])
+                .select();  // ← helps see if insert actually happened
 
-            if (error) throw error;
+            if (error) {
+                console.error('Supabase Insert Error:', error);
+                throw error;
+            }
 
-            // Success UI
+            // Success
             document.getElementById("premiumForm").style.display = "none";
             document.getElementById("success-message").style.display = "block";
             document.getElementById("success-message").style.animation = "fadeIn 1s ease";
@@ -833,15 +823,15 @@
             document.getElementById("progress-bar").style.width = "100%";
 
         } catch (err) {
-            console.error('Supabase Error:', err);
-            btn.innerHTML = "Submit";
-            btn.disabled = false;
+            console.error('Submission failed:', err.message, err);
+            alert(`Submission failed: ${err.message || 'Unknown error'}\nCheck console for details.`);
             document.getElementById("error-message").style.display = "block";
+            btn.innerHTML = originalText;
+            btn.disabled = false;
         }
     }
-
     /* --- Visual selection logic (Unchanged) --- */
-    
+   
     function selectRadio(card) {
         const siblings = card.parentElement.querySelectorAll('.custom-option');
         siblings.forEach(el => el.classList.remove('selected'));
@@ -849,15 +839,13 @@
         input.checked = true;
         card.classList.add('selected');
     }
-
     function toggleCheckbox(card, groupName, isNoOption = false) {
         const input = card.querySelector('input');
-        
+       
         if (groupName === 'ads_group') {
             const container = card.parentElement;
             const noOption = container.querySelector('#ads-no');
             const otherOptions = container.querySelectorAll('.ads-opt');
-
             if (isNoOption) {
                 if (!input.checked) {
                     otherOptions.forEach(opt => {
@@ -872,8 +860,7 @@
                 }
             }
         }
-
-        input.checked = !input.checked; 
+        input.checked = !input.checked;
         if(input.checked) {
             card.classList.add('selected');
         } else {
@@ -881,6 +868,5 @@
         }
     }
 </script>
-
 </body>
 </html>
