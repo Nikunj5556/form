@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Diagnostic</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+   
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --bg-color: #050505;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --text-main: #ffffff;
+            --text-muted: #a0a0a0;
+            --accent: #d4af37; /* Muted Gold */
+            --accent-hover: #f3cf55;
+            --font-head: 'Playfair Display', serif;
+            --font-body: 'Inter', sans-serif;
+            --transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-image: radial-gradient(circle at 50% 10%, #1a1a1a 0%, #050505 60%);
+            padding: 20px;
+        }
+        /* --- Main Container --- */
+        .container {
+            width: 100%;
+            max-width: 600px;
+            position: relative;
+        }
+        .intro-text {
+            text-align: center;
+            font-family: var(--font-head);
+            font-style: italic;
+            color: var(--text-muted);
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+            letter-spacing: 0.5px;
+            opacity: 0.8;
+        }
+        /* --- Card Styling --- */
+        .form-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        /* --- Progress Bar --- */
+        .progress-container {
+            position: absolute;
+            top: -2px;
+            left: 20px;
+            right: 20px;
+            height: 2px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--text-main);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        /* --- Typography --- */
+        h2 {
+            font-family: var(--font-head);
+            font-weight: 400;
+            font-size: 1.8rem;
+            margin-bottom: 30px;
+            line-height: 1.3;
+        }
+        .seriousness-note {
+            font-family: var(--font-body);
+            color: var(--accent);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            display: block;
+            opacity: 0.9;
+        }
+        label {
+            display: block;
+            cursor: pointer;
+        }
+        /* --- Input Styles --- */
+        input[type="text"], input[type="email"], textarea {
+            width: 100%;
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-main);
+            font-size: 1.2rem;
+            padding: 10px 0;
+            font-family: var(--font-head);
+            outline: none;
+            transition: var(--transition);
+        }
+        input[type="text"]:focus, input[type="email"]:focus, textarea:focus {
+            border-bottom-color: var(--accent);
+        }
+        textarea { resize: none; min-height: 80px; }
+        /* --- Custom Radio/Checkbox Cards --- */
+        .option-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .custom-option {
+            position: relative;
+            padding: 15px 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            font-size: 0.95rem;
+            color: var(--text-muted);
+        }
+        .custom-option:hover {
+            border-color: rgba(255,255,255,0.4);
+            background: rgba(255,255,255,0.02);
+            color: var(--text-main);
+        }
+        /* Hide default input */
+        .custom-option input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            height: 0;
+            width: 0;
+        }
+        /* Selected State */
+        .custom-option.selected {
+            border-color: var(--text-main);
+            background: rgba(255,255,255,0.08);
+            color: var(--text-main);
+        }
+        /* Checkmark/Radio indicator */
+        .indicator {
+            width: 18px;
+            height: 18px;
+            border: 1px solid var(--text-muted);
+            border-radius: 50%; /* Circle for default */
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+        /* Box indicator for checkboxes */
+        input[type="checkbox"] ~ .indicator {
+            border-radius: 4px;
+        }
+        .custom-option.selected .indicator {
+            border-color: var(--text-main);
+            background: var(--text-main);
+        }
+        /* --- Star Rating --- */
+        .star-rating-group {
+            margin-bottom: 25px;
+        }
+        .star-label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            display: block;
+        }
+        .stars {
+            display: flex;
+            gap: 10px;
+            flex-direction: row-reverse; /* Handle logic css-only */
+            justify-content: flex-end;
+        }
+        .stars input { display: none; }
+        .stars label {
+            font-size: 1.5rem;
+            color: #333;
+            transition: 0.2s;
+        }
+        .stars label:hover,
+        .stars label:hover ~ label,
+        .stars input:checked ~ label {
+            color: var(--accent);
+        }
+        /* --- Navigation Buttons --- */
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+            align-items: center;
+        }
+        button {
+            background: none;
+            border: none;
+            color: var(--text-main);
+            font-family: var(--font-body);
+            font-size: 0.9rem;
+            cursor: pointer;
+            padding: 10px 20px;
+            border-radius: 30px;
+            transition: var(--transition);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        button.primary {
+            background: var(--text-main);
+            color: var(--bg-color);
+            font-weight: 600;
+        }
+        button.primary:hover {
+            background: #dcdcdc;
+            transform: translateY(-2px);
+        }
+        button.primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        button.secondary {
+            color: var(--text-muted);
+        }
+        button.secondary:hover {
+            color: var(--text-main);
+        }
+        /* --- Animations --- */
+        .step {
+            display: none;
+            animation: fadeIn 0.6s ease forwards;
+        }
+        .step.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* --- Success Message --- */
+        #success-message {
+            display: none;
+            text-align: center;
+        }
+        #success-message h2 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+        #success-message p {
+            color: var(--text-muted);
+            line-height: 1.6;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+        /* Mobile Adjustments */
+        @media (max-width: 480px) {
+            .form-card { padding: 25px; min-height: 350px; }
+            h2 { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="intro-text">
+        There are no right answers here — only honest ones.
+    </div>
+    <div class="form-card">
+        <div class="progress-container"><div class="progress-bar" id="progress-bar"></div></div>
+        <form id="premiumForm" onsubmit="return false;">
+           
+            <div class="step active" data-step="1">
+                <h2>What is your name?</h2>
+                <input type="text" id="q1" placeholder="Type your answer here..." autocomplete="name">
+            </div>
+            <div class="step" data-step="1b">
+                <h2>What is your email?</h2>
+                <input type="email" id="q_email" placeholder="name@example.com" autocomplete="email">
+            </div>
+            <div class="step" data-step="2">
+                <h2>What best describes your business?</h2>
+                <div class="option-group">
+                    <label class="custom-option" onclick="selectRadio(this)">
+                        <input type="radio" name="business_type" value="DTC">
+                        <span class="indicator"></span> DTC / E-commerce (physical)
+                    </label>
+                    <label class="custom-option" onclick="selectRadio(this)">
+                        <input type="radio" name="business_type" value="Digital">
+                        <span class="indicator"></span> Digital products
+                    </label>
+                    <label class="custom-option" onclick="selectRadio(this)">
+                        <input type="radio" name="business_type" value="SaaS">
+                        <span class="indicator"></span> SaaS
+                    </label>
+                    <label class="custom-option" onclick="selectRadio(this)">
+                        <input type="radio" name="business_type" value="Local">
+                        <span class="indicator"></span> Local service
+                    </label>
+                    <label class="custom-option" onclick="selectRadio(this)">
+                        <input type="radio" name="business_type" value="Other">
+                        <span class="indicator"></span> Other
+                    </label>
+                </div>
+            </div>
+            <div class="step" data-step="3">
+                <h2>Are you currently running paid ads?</h2>
+                <div class="option-group">
+                    <label class="custom-option" onclick="toggleCheckbox(this, 'ads_group')">
+                        <input type="checkbox" name="ads" value="Meta" class="ads-opt">
+                        <span class="indicator"></span> Yes — Meta
+                    </label>
+                    <label class="custom-option" onclick="toggleCheckbox(this, 'ads_group')">
+                        <input type="checkbox" name="ads" value="Google" class="ads-opt">
+                        <span class="indicator"></span> Yes — Google
+                    </label>
+                    <label class="custom-option" onclick="toggleCheckbox(this, 'ads_group')">
+                        <input type="checkbox" name="ads" value="Influencers" class="ads-opt">
+                        <span class="indicator"></span> Yes — Influencers/Personalities
+                    </label>
+                    <label class="custom-option" onclick="toggleCheckbox(this, 'ads_group', true)">
+                        <input type="checkbox" name="ads" value="No" id="ads-no">
+                        <span class="indicator"></span> No
+                    </label>
+                </div>
+            </div>
+            <div class="step" data-step="3b">
+                <h2>Quick note</h2>
+                <p style="color: var(--text-muted); font-size: 1.1rem; line-height: 1.6; font-family: var(--font-body);">
+                    We typically do our best work once paid traffic is active.
+                    <br><br>
+                    You’re still welcome to continue — just know our feedback may be directional rather than actionable.
+                </p>
+            </div>
+            <div class="step" data-step="4">
+                <h2>Approximate monthly revenue?</h2>
+                <div class="option-group">
+                    <label class="custom-option" onclick="selectRadio(this)">
+                        <input type="radio" name="revenue" value="Under 10k">
+                        <span class="indicator"></span> Under $10k
+                    </label>
+                    <label class="custom-option" onclick="selectRadio(this)">
+                        <input type="radio" name="revenue" value="10k-50k">
+                        <span class="indicator"></span> $10k–$50k
+                    </label>
+                    <label class="custom-option" onclick="selectRadio(this)">
+                        <input type="radio" name="revenue" value="50k-200k">
+                        <span class="indicator"></span> $50k–$200k
+                    </label>
+                    <label class="custom-option" onclick="selectRadio(this)">
+                        <input type="radio" name="revenue" value="200k+">
+                        <span class="indicator"></span> $200k+
+                    </label>
+                </div>
+            </div>
+            <div class="step" data-step="5">
+                <h2>Where does most traffic come from?</h2>
+                <div class="option-group">
+                    <label class="custom-option" onclick="selectRadio(this)">
+                        <input type="radio" name="traffic" value="Paid">
+                        <span class="indicator"></span> Paid ads
+                    </label>
+                    <label class="custom-option" onclick="selectRadio(this)">
+                        <input type="radio" name="traffic" value="Organic">
+                        <span class="indicator"></span> Organic social
+                    </label>
+                    <label class="custom-option" onclick="selectRadio(this)">
+                        <input type="radio" name="traffic" value="Influencers">
+                        <span class="indicator"></span> Influencers
+                    </label>
+                    <label class="custom-option" onclick="selectRadio(this)">
+                        <input type="radio" name="traffic" value="Search">
+                        <span class="indicator"></span> Search
+                    </label>
+                    <label class="custom-option" onclick="selectRadio(this)">
+                        <input type="radio" name="traffic" value="Mixed">
+                        <span class="indicator"></span> Mixed / unsure
+                    </label>
+                </div>
+            </div>
+            <div class="step" data-step="6">
+                <h2>Which feels most true right now?</h2>
+                <div class="option-group">
+                    <label class="custom-option" onclick="selectRadio(this)">
+                        <input type="radio" name="feeling" value="Scroll past">
+                        <span class="indicator"></span> People scroll past our ads/content
+                    </label>
+                    <label class="custom-option" onclick="selectRadio(this)">
+                        <input type="radio" name="feeling" value="Click no stay">
+                        <span class="indicator"></span> People click but don’t stay
+                    </label>
+                    <label class="custom-option" onclick="selectRadio(this)">
+                        <input type="radio" name="feeling" value="Engagement no purchase">
+                        <span class="indicator"></span> Engagement exists, purchases don’t
+                    </label>
+                    <label class="custom-option" onclick="selectRadio(this)">
+                        <input type="radio" name="feeling" value="Inconsistent">
+                        <span class="indicator"></span> It’s inconsistent
+                    </label>
+                </div>
+            </div>
+            <div class="step" data-step="7">
+                <h2>When someone lands on your product page, what do you think they feel?</h2>
+                <div class="option-group">
+                    <label class="custom-option" onclick="selectRadio(this)">
+                        <input type="radio" name="sentiment" value="Curious">
+                        <span class="indicator"></span> Curious but unsure
+                    </label>
+                    <label class="custom-option" onclick="selectRadio(this)">
+                        <input type="radio" name="sentiment" value="Interested">
+                        <span class="indicator"></span> Interested but cautious
+                    </label>
+                    <label class="custom-option" onclick="selectRadio(this)">
+                        <input type="radio" name="sentiment" value="Confident">
+                        <span class="indicator"></span> Confident enough to buy
+                    </label>
+                    <label class="custom-option" onclick="selectRadio(this)">
+                        <input type="radio" name="sentiment" value="Unknown">
+                        <span class="indicator"></span> I honestly don’t know
+                    </label>
+                </div>
+            </div>
+            <div class="step" data-step="8">
+                <h2>Where is social proof shown?</h2>
+                <div class="option-group">
+                    <label class="custom-option" onclick="selectRadio(this)">
+                        <input type="radio" name="proof" value="Above fold">
+                        <span class="indicator"></span> Above the fold
+                    </label>
+                    <label class="custom-option" onclick="selectRadio(this)">
+                        <input type="radio" name="proof" value="After scrolling">
+                        <span class="indicator"></span> After scrolling
+                    </label>
+                    <label class="custom-option" onclick="selectRadio(this)">
+                        <input type="radio" name="proof" value="Separate page">
+                        <span class="indicator"></span> Separate reviews page
+                    </label>
+                    <label class="custom-option" onclick="selectRadio(this)">
+                        <input type="radio" name="proof" value="None">
+                        <span class="indicator"></span> Very little / none
+                    </label>
+                </div>
+            </div>
+            <div class="step" data-step="9">
+                <span class="seriousness-note">Answer based on your honest instinct — not what you want to be true.</span>
+                <h2>Rate how quickly a first-time visitor can understand:</h2>
+               
+                <div class="star-rating-group">
+                    <span class="star-label">What the product is</span>
+                    <div class="stars">
+                        <input type="radio" name="rate_what" id="what5" value="5"><label for="what5">★</label>
+                        <input type="radio" name="rate_what" id="what4" value="4"><label for="what4">★</label>
+                        <input type="radio" name="rate_what" id="what3" value="3"><label for="what3">★</label>
+                        <input type="radio" name="rate_what" id="what2" value="2"><label for="what2">★</label>
+                        <input type="radio" name="rate_what" id="what1" value="1"><label for="what1">★</label>
+                    </div>
+                </div>
+                <div class="star-rating-group">
+                    <span class="star-label">Who it’s for</span>
+                    <div class="stars">
+                        <input type="radio" name="rate_who" id="who5" value="5"><label for="who5">★</label>
+                        <input type="radio" name="rate_who" id="who4" value="4"><label for="who4">★</label>
+                        <input type="radio" name="rate_who" id="who3" value="3"><label for="who3">★</label>
+                        <input type="radio" name="rate_who" id="who2" value="2"><label for="who2">★</label>
+                        <input type="radio" name="rate_who" id="who1" value="1"><label for="who1">★</label>
+                    </div>
+                </div>
+                <div class="star-rating-group">
+                    <span class="star-label">Why it’s different</span>
+                    <div class="stars">
+                        <input type="radio" name="rate_why" id="why5" value="5"><label for="why5">★</label>
+                        <input type="radio" name="rate_why" id="why4" value="4"><label for="why4">★</label>
+                        <input type="radio" name="rate_why" id="why3" value="3"><label for="why3">★</label>
+                        <input type="radio" name="rate_why" id="why2" value="2"><label for="why2">★</label>
+                        <input type="radio" name="rate_why" id="why1" value="1"><label for="why1">★</label>
+                    </div>
+                </div>
+            </div>
+            <div class="step" data-step="10">
+                <h2>Which best describes your product page?</h2>
+                <div class="option-group">
+                    <label class="custom-option" onclick="selectRadio(this)">
+                        <input type="radio" name="pd_desc" value="Minimal">
+                        <span class="indicator"></span> Clean but too minimal
+                    </label>
+                    <label class="custom-option" onclick="selectRadio(this)">
+                        <input type="radio" name="pd_desc" value="Long">
+                        <span class="indicator"></span> Informative but long
+                    </label>
+                    <label class="custom-option" onclick="selectRadio(this)">
+                        <input type="radio" name="pd_desc" value="Text heavy">
+                        <span class="indicator"></span> Visually strong but text-heavy
+                    </label>
+                    <label class="custom-option" onclick="selectRadio(this)">
+                        <input type="radio" name="pd_desc" value="Unsure">
+                        <span class="indicator"></span> Not sure
+                    </label>
+                </div>
+            </div>
+            <div class="step" data-step="11">
+                <h2>Where do you suspect people hesitate most?</h2>
+                <div class="option-group">
+                    <label class="custom-option" onclick="selectRadio(this)">
+                        <input type="radio" name="hesitation" value="Price">
+                        <span class="indicator"></span> Price
+                    </label>
+                    <label class="custom-option" onclick="selectRadio(this)">
+                        <input type="radio" name="hesitation" value="Trust">
+                        <span class="indicator"></span> Trust / reviews
+                    </label>
+                    <label class="custom-option" onclick="selectRadio(this)">
+                        <input type="radio" name="hesitation" value="Value">
+                        <span class="indicator"></span> Understanding value
+                    </label>
+                    <label class="custom-option" onclick="selectRadio(this)">
+                        <input type="radio" name="hesitation" value="Shipping">
+                        <span class="indicator"></span> Shipping / returns
+                    </label>
+                </div>
+            </div>
+            <div class="step" data-step="12">
+                <h2>Which tools do you use?</h2>
+                <div class="option-group">
+                    <label class="custom-option" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" name="tools" value="GA">
+                        <span class="indicator"></span> GA / analytics
+                    </label>
+                    <label class="custom-option" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" name="tools" value="Pixel">
+                        <span class="indicator"></span> Meta pixel
+                    </label>
+                    <label class="custom-option" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" name="tools" value="Heatmaps">
+                        <span class="indicator"></span> Heatmaps / recordings
+                    </label>
+                    <label class="custom-option" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" name="tools" value="None">
+                        <span class="indicator"></span> None / not sure
+                    </label>
+                </div>
+            </div>
+            <div class="step" data-step="13">
+                <h2>Which statement feels closest?</h2>
+                <div class="option-group">
+                    <label class="custom-option" onclick="selectRadio(this)">
+                        <input type="radio" name="clarity" value="No fix">
+                        <span class="indicator"></span> We track data but don’t know what to fix
+                    </label>
+                    <label class="custom-option" onclick="selectRadio(this)">
+                        <input type="radio" name="clarity" value="Unsure help">
+                        <span class="indicator"></span> We make changes but aren’t sure they help
+                    </label>
+                    <label class="custom-option" onclick="selectRadio(this)">
+                        <input type="radio" name="clarity" value="Intuition">
+                        <span class="indicator"></span> We mostly go by intuition
+                    </label>
+                    <label class="custom-option" onclick="selectRadio(this)">
+                        <input type="radio" name="clarity" value="Confident">
+                        <span class="indicator"></span> We have clarity and confidence
+                    </label>
+                </div>
+            </div>
+             <div class="step" data-step="14">
+                <h2>Why are you requesting this diagnostic?</h2>
+                <div class="option-group">
+                    <label class="custom-option" onclick="selectRadio(this)">
+                        <input type="radio" name="reason" value="Low conversion">
+                        <span class="indicator"></span> Low conversion rate
+                    </label>
+                    <label class="custom-option" onclick="selectRadio(this)">
+                        <input type="radio" name="reason" value="High CAC">
+                        <span class="indicator"></span> High CAC / ROAS issues
+                    </label>
+                    <label class="custom-option" onclick="selectRadio(this)">
+                        <input type="radio" name="reason" value="Scaling">
+                        <span class="indicator"></span> Scaling ads soon
+                    </label>
+                    <label class="custom-option" onclick="selectRadio(this)">
+                        <input type="radio" name="reason" value="Gut feeling">
+                        <span class="indicator"></span> Gut feeling something’s off
+                    </label>
+                </div>
+            </div>
+            <div class="step" data-step="15">
+                <h2>If we find a clear issue worth fixing, what are you genuinely open to?</h2>
+                <div class="option-group">
+                    <label class="custom-option" onclick="selectRadio(this)">
+                        <input type="radio" name="openness" value="Guidance">
+                        <span class="indicator"></span> Strategic guidance only
+                    </label>
+                    <label class="custom-option" onclick="selectRadio(this)">
+                        <input type="radio" name="openness" value="One fix">
+                        <span class="indicator"></span> Fixing one critical issue
+                    </label>
+                    <label class="custom-option" onclick="selectRadio(this)">
+                        <input type="radio" name="openness" value="Ongoing">
+                        <span class="indicator"></span> Ongoing optimization
+                    </label>
+                    <label class="custom-option" onclick="selectRadio(this)">
+                        <input type="radio" name="openness" value="Insights">
+                        <span class="indicator"></span> Just want insights for now
+                    </label>
+                </div>
+            </div>
+            <div class="step" data-step="16">
+                <h2>What would make this diagnostic valuable for you?</h2>
+                <textarea id="valuable_text" placeholder="Short answer..."></textarea>
+            </div>
+            <div class="nav-buttons">
+                <button type="button" class="secondary" id="prevBtn" onclick="nextPrev(-1)">Back</button>
+                <button type="button" class="primary" id="nextBtn" onclick="nextPrev(1)">Next</button>
+            </div>
+        </form>
+        <div id="success-message">
+            <h2>Thanks.</h2>
+            <p>We’re reviewing your responses to identify where confidence breaks in your buying flow.</p>
+            <p>If there’s a meaningful opportunity, we’ll share it clearly. <br>If not, we’ll tell you that too.</p>
+            <p style="margin-top: 30px; font-weight: 600;">You’ll hear from us within 24–48 hours.</p>
+        </div>
+       
+        <div id="error-message" style="display:none; text-align:center; color: #ff6b6b; margin-top:20px;">
+            <p>Something went wrong. Please refresh and try again.</p>
+        </div>
+    </div>
+</div>
+<script>
+    'use strict';
+    // --- Supabase Config ---
+    const SUPABASE_URL = 'https://vcwqgerzfjpevhmypvjd.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZjd3FnZXJ6ZmpwZXZobXlwdmpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcwODE4MjAsImV4cCI6MjA4MjY1NzgyMH0.vahzvUUVJyw_ae2Y8TpFrd324Aq3-e92jd55msJzh5I';
+   
+    // Initialize Supabase
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false } });
+    // --- Form Logic ---
+    let currentTab = 0;
+    const steps = document.getElementsByClassName("step");
+   
+    showTab(currentTab);
+    function showTab(n) {
+        // Hide all steps first
+        for (let i = 0; i < steps.length; i++) {
+            steps[i].className = steps[i].className.replace(" active", "");
+        }
+        // Show current step
+        steps[n].className += " active";
+        // Navigation visibility
+        if (n == 0) {
+            document.getElementById("prevBtn").style.visibility = "hidden";
+        } else {
+            document.getElementById("prevBtn").style.visibility = "visible";
+        }
+        if (n == (steps.length - 1)) {
+            document.getElementById("nextBtn").innerHTML = "Submit";
+        } else {
+            document.getElementById("nextBtn").innerHTML = "Next";
+        }
+        // Update Progress Bar
+        const progress = ((n + 1) / steps.length) * 100;
+        document.getElementById("progress-bar").style.width = progress + "%";
+    }
+    function nextPrev(n) {
+        // Validation check (Basic)
+        if (n == 1) {
+            // Check current step inputs
+            const currentInputs = steps[currentTab].querySelectorAll("input, textarea");
+            let valid = true;
+            // Check text, email, and textarea for non-empty
+            currentInputs.forEach(input => {
+                if (input.tagName.toLowerCase() === 'textarea' || input.type === 'text' || input.type === 'email') {
+                    if (input.value.trim() === '') {
+                        valid = false;
+                    }
+                }
+            });
+
+            // Check radio groups (including stars) for at least one selected per group
+            const radioGroups = {};
+            currentInputs.forEach(input => {
+                if (input.type === 'radio') {
+                    if (!radioGroups[input.name]) {
+                        radioGroups[input.name] = false;
+                    }
+                    if (input.checked) {
+                        radioGroups[input.name] = true;
+                    }
+                }
+            });
+            for (let group in radioGroups) {
+                if (!radioGroups[group]) {
+                    valid = false;
+                }
+            }
+
+            // Check checkbox groups for at least one selected per group (e.g., ads, tools)
+            const checkboxGroups = {};
+            currentInputs.forEach(input => {
+                if (input.type === 'checkbox') {
+                    if (!checkboxGroups[input.name]) {
+                        checkboxGroups[input.name] = false;
+                    }
+                    if (input.checked) {
+                        checkboxGroups[input.name] = true;
+                    }
+                }
+            });
+            for (let group in checkboxGroups) {
+                if (!checkboxGroups[group]) {
+                    valid = false;
+                }
+            }
+
+            // Prevent advancing if invalid
+            if (!valid) {
+                // Optional: Add user feedback, e.g., alert or highlight fields
+                alert('Please answer the question before proceeding.');
+                return;
+            }
+        }
+        // --- Logic for Soft-fit Step ---
+        // Indices have shifted due to the new Email step.
+        // 0: Name, 1: Email, 2: Business, 3: Ads, 4: Soft-fit, 5: Revenue
+       
+        // Going Forward from Ads (Index 3)
+        if (currentTab === 3 && n === 1) {
+            const noChecked = document.getElementById('ads-no').checked;
+            // If "No" is NOT checked, we skip step 4 (Soft-fit) and jump to 5
+            if (!noChecked) {
+                steps[currentTab].className = steps[currentTab].className.replace(" active", "");
+                currentTab = currentTab + 2; // Jump 2 steps to Revenue
+                showTab(currentTab);
+                return;
+            }
+        }
+        // Going Backward from Revenue (Index 5)
+        if (currentTab === 5 && n === -1) {
+            const noChecked = document.getElementById('ads-no').checked;
+            // If "No" was NOT checked, we skip step 4 (Soft-fit) and go back to 3
+            if (!noChecked) {
+                steps[currentTab].className = steps[currentTab].className.replace(" active", "");
+                currentTab = currentTab - 2; // Go back 2 steps to Ads
+                showTab(currentTab);
+                return;
+            }
+        }
+        // -------------------------------------------
+        // If submit
+        if (currentTab + n >= steps.length) {
+            submitForm();
+            return false;
+        }
+        currentTab = currentTab + n;
+        showTab(currentTab);
+    }
+    async function submitForm() {
+        const btn = document.getElementById("nextBtn");
+        const originalText = btn.innerHTML;
+        btn.innerHTML = "Submitting...";
+        btn.disabled = true;
+
+        // Collect Data (same as before)
+        const getVal = (id) => document.getElementById(id)?.value?.trim() || '';
+        const getRadio = (name) => document.querySelector(`input[name="${name}"]:checked`)?.value || null;
+        const getMulti = (name) => Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(el => el.value);
+        const getInt = (name) => {
+            const val = document.querySelector(`input[name="${name}"]:checked`)?.value;
+            return val ? parseInt(val, 10) : null;
+        };
+
+        const formData = {
+            user_name: getVal('q1'),
+            user_email: getVal('q_email'),
+            business_type: getRadio('business_type'),
+            paid_ads: getMulti('ads'),
+            revenue_range: getRadio('revenue'),
+            traffic_source: getRadio('traffic'),
+            current_feeling: getRadio('feeling'),
+            visitor_sentiment: getRadio('sentiment'),
+            social_proof_location: getRadio('proof'),
+            rating_product_what: getInt('rate_what'),
+            rating_product_who: getInt('rate_who'),
+            rating_product_why: getInt('rate_why'),
+            product_page_desc: getRadio('pd_desc'),
+            hesitation_point: getRadio('hesitation'),
+            tools_used: getMulti('tools'),
+            data_clarity: getRadio('clarity'),
+            diagnostic_reason: getRadio('reason'),
+            openness_level: getRadio('openness'),
+            value_expectation: getVal('valuable_text')
+        };
+
+        try {
+            const { data, error } = await supabaseClient
+                .from('diagnostic_submissions')
+                .insert([formData])
+                .select();  // ← helps see if insert actually happened
+
+            if (error) {
+                console.error('Supabase Insert Error:', error);
+                throw error;
+            }
+
+            // Success
+            document.getElementById("premiumForm").style.display = "none";
+            document.getElementById("success-message").style.display = "block";
+            document.getElementById("success-message").style.animation = "fadeIn 1s ease";
+            document.querySelector(".nav-buttons").style.display = "none";
+            document.querySelector(".intro-text").style.display = "none";
+            document.getElementById("progress-bar").style.width = "100%";
+
+        } catch (err) {
+            console.error('Submission failed:', err.message, err);
+            alert(`Submission failed: ${err.message || 'Unknown error'}\nCheck console for details.`);
+            document.getElementById("error-message").style.display = "block";
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    }
+    /* --- Visual selection logic (Unchanged) --- */
+   
+    function selectRadio(card) {
+        const siblings = card.parentElement.querySelectorAll('.custom-option');
+        siblings.forEach(el => el.classList.remove('selected'));
+        const input = card.querySelector('input');
+        input.checked = true;
+        card.classList.add('selected');
+    }
+    function toggleCheckbox(card, groupName, isNoOption = false) {
+        const input = card.querySelector('input');
+       
+        if (groupName === 'ads_group') {
+            const container = card.parentElement;
+            const noOption = container.querySelector('#ads-no');
+            const otherOptions = container.querySelectorAll('.ads-opt');
+            if (isNoOption) {
+                if (!input.checked) {
+                    otherOptions.forEach(opt => {
+                        opt.checked = false;
+                        opt.parentElement.classList.remove('selected');
+                    });
+                }
+            } else {
+                if (!input.checked) {
+                    noOption.checked = false;
+                    noOption.parentElement.classList.remove('selected');
+                }
+            }
+        }
+        input.checked = !input.checked;
+        if(input.checked) {
+            card.classList.add('selected');
+        } else {
+            card.classList.remove('selected');
+        }
+    }
+</script>
+</body>
+</html>
