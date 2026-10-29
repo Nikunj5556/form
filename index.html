@@ -656,62 +656,6 @@
 <script>
     'use strict';
     // --- Submission configuration ---
-    // Replace this with the reCAPTCHA v3 SITE KEY from Google reCAPTCHA Admin.
-    // Never put the reCAPTCHA SECRET KEY or Supabase service-role key in this HTML.
-    const RECAPTCHA_SITE_KEY = '6lesHBDAGHFDTSY';
-
-    function loadRecaptcha() {
-        return new Promise((resolve, reject) => {
-            if (window.grecaptcha && typeof window.grecaptcha.execute === 'function') {
-                resolve();
-                return;
-            }
-
-            const existingScript = document.querySelector('script[data-recaptcha-loader="true"]');
-            if (existingScript) {
-                existingScript.addEventListener('load', resolve, { once: true });
-                existingScript.addEventListener('error', () => reject(new Error('Could not load reCAPTCHA.')), { once: true });
-                return;
-            }
-
-            const script = document.createElement('script');
-            script.src = 'https://www.google.com/recaptcha/api.js?render=' + encodeURIComponent(RECAPTCHA_SITE_KEY);
-            script.async = true;
-            script.defer = true;
-            script.dataset.recaptchaLoader = 'true';
-            script.onload = resolve;
-            script.onerror = () => reject(new Error('Could not load reCAPTCHA. Check your connection or site key.'));
-            document.head.appendChild(script);
-        });
-    }
-
-    async function getRecaptchaToken() {
-        if (!RECAPTCHA_SITE_KEY || RECAPTCHA_SITE_KEY.includes('REPLACE_WITH_')) {
-            throw new Error('Add your Google reCAPTCHA v3 site key to the HTML before submitting.');
-        }
-
-        await loadRecaptcha();
-
-        return new Promise((resolve, reject) => {
-            if (!window.grecaptcha) {
-                reject(new Error('reCAPTCHA did not initialize.'));
-                return;
-            }
-
-            window.grecaptcha.ready(async () => {
-                try {
-                    const token = await window.grecaptcha.execute(RECAPTCHA_SITE_KEY, { action: 'submit' });
-                    if (!token) {
-                        reject(new Error('Could not generate the security token. Please try again.'));
-                        return;
-                    }
-                    resolve(token);
-                } catch (error) {
-                    reject(error);
-                }
-            });
-        });
-    }
 
     // --- Form Logic ---
     let currentTab = 0;
@@ -874,7 +818,6 @@
         document.getElementById("error-message").style.display = "none";
 
         try {
-            const captchaToken = await getRecaptchaToken();
             const honeypot = document.getElementById('website_url_trap')?.value || '';
 
             // This endpoint must exist as /api/submit on the same Vercel deployment.
@@ -882,17 +825,28 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    captchaToken,
                     honeypot,
                     formData
                 })
             });
 
-            let result;
+            const responseText = await response.text();
+            let result = null;
+
             try {
-                result = await response.json();
+                result = responseText ? JSON.parse(responseText) : {};
             } catch {
-                throw new Error('The server returned an invalid response. Check Vercel function logs.');
+                const preview = responseText
+                    .replace(/<[^>]*>/g, ' ')
+                    .replace(/\\s+/g, ' ')
+                    .trim()
+                    .slice(0, 180);
+
+                throw new Error(
+                    `API returned non-JSON content (HTTP ${response.status}). ` +
+                    `Check that api/submit.js is deployed at /api/submit. ` +
+                    (preview ? `Server response: ${preview}` : '')
+                );
             }
 
             if (!response.ok) {
