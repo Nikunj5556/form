@@ -803,33 +803,62 @@
             value_expectation: getVal('valuable_text')
         };
 
-        try {
-            const { data, error } = await supabaseClient
-                .from('diagnostic_submissions')
-                .insert([formData])
-                .select();  // ← helps see if insert actually happened
 
-            if (error) {
-                console.error('Supabase Insert Error:', error);
-                throw error;
-            }
-
-            // Success
-            document.getElementById("premiumForm").style.display = "none";
-            document.getElementById("success-message").style.display = "block";
-            document.getElementById("success-message").style.animation = "fadeIn 1s ease";
-            document.querySelector(".nav-buttons").style.display = "none";
-            document.querySelector(".intro-text").style.display = "none";
-            document.getElementById("progress-bar").style.width = "100%";
-
-        } catch (err) {
-            console.error('Submission failed:', err.message, err);
-            alert(`Submission failed: ${err.message || 'Unknown error'}\nCheck console for details.`);
-            document.getElementById("error-message").style.display = "block";
-            btn.innerHTML = originalText;
-            btn.disabled = false;
+try {
+    const captchaToken = await new Promise((resolve, reject) => {
+        if (!window.grecaptcha) {
+            reject(new Error('reCAPTCHA failed to load.'));
+            return;
         }
+
+        grecaptcha.ready(async () => {
+            try {
+                const token = await grecaptcha.execute(
+                    'YOUR_RECAPTCHA_SITE_KEY',
+                    { action: 'submit' }
+                );
+                resolve(token);
+            } catch (error) {
+                reject(error);
+            }
+        });
+    });
+
+    const response = await fetch('/api/submit', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            captchaToken,
+            honeypot: '',
+            formData
+        })
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+        throw new Error(result.error || 'Submission failed.');
     }
+
+    // Success
+    document.getElementById('premiumForm').style.display = 'none';
+    document.getElementById('success-message').style.display = 'block';
+    document.getElementById('success-message').style.animation =
+        'fadeIn 1s ease';
+    document.querySelector('.nav-buttons').style.display = 'none';
+    document.querySelector('.intro-text').style.display = 'none';
+    document.getElementById('progress-bar').style.width = '100%';
+
+} catch (err) {
+    console.error('Submission failed:', err);
+    alert(err.message || 'Submission failed. Please try again.');
+    document.getElementById('error-message').style.display = 'block';
+    btn.innerHTML = originalText;
+    btn.disabled = false;
+}
+
     /* --- Visual selection logic (Unchanged) --- */
    
     function selectRadio(card) {
