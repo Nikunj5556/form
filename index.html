@@ -658,7 +658,7 @@
     // --- Submission configuration ---
     // Replace this with the reCAPTCHA v3 SITE KEY from Google reCAPTCHA Admin.
     // Never put the reCAPTCHA SECRET KEY or Supabase service-role key in this HTML.
-    const RECAPTCHA_SITE_KEY = '6LeGkQYuAAAAAOc3dXIoMOFINf7sgL0IufWPBUGW';
+    const RECAPTCHA_SITE_KEY = 'REPLACE_WITH_YOUR_RECAPTCHA_V3_SITE_KEY';
 
     function loadRecaptcha() {
         return new Promise((resolve, reject) => {
@@ -685,67 +685,33 @@
         });
     }
 
-  
-async function getRecaptchaToken() {
-    if (
-        !RECAPTCHA_SITE_KEY ||
-        RECAPTCHA_SITE_KEY.includes('REPLACE_WITH_')
-    ) {
-        throw new Error(
-            'Please configure your Google reCAPTCHA v3 site key.'
-        );
-    }
+    async function getRecaptchaToken() {
+        if (!RECAPTCHA_SITE_KEY || RECAPTCHA_SITE_KEY.includes('REPLACE_WITH_')) {
+            throw new Error('Add your Google reCAPTCHA v3 site key to the HTML before submitting.');
+        }
 
-    await loadRecaptcha();
+        await loadRecaptcha();
 
-    return new Promise((resolve, reject) => {
-        let settled = false;
+        return new Promise((resolve, reject) => {
+            if (!window.grecaptcha) {
+                reject(new Error('reCAPTCHA did not initialize.'));
+                return;
+            }
 
-        const finish = (error, token) => {
-            if (settled) return;
-            settled = true;
-            clearTimeout(timeout);
-
-            if (error) reject(error);
-            else resolve(token);
-        };
-
-        const timeout = setTimeout(() => {
-            finish(new Error(
-                'Google reCAPTCHA timed out. Check your site key, ' +
-                'registered domain, internet connection, or browser extensions.'
-            ));
-        }, 15000);
-
-        try {
             window.grecaptcha.ready(async () => {
                 try {
-                    const token = await window.grecaptcha.execute(
-                        RECAPTCHA_SITE_KEY,
-                        { action: 'submit' }
-                    );
-
+                    const token = await window.grecaptcha.execute(RECAPTCHA_SITE_KEY, { action: 'submit' });
                     if (!token) {
-                        finish(new Error(
-                            'reCAPTCHA returned an empty token. Please retry.'
-                        ));
+                        reject(new Error('Could not generate the security token. Please try again.'));
                         return;
                     }
-
-                    finish(null, token);
+                    resolve(token);
                 } catch (error) {
-                    finish(new Error(
-                        'reCAPTCHA could not generate a token. ' +
-                        'Verify your v3 key and domain configuration.'
-                    ));
+                    reject(error);
                 }
             });
-        } catch (error) {
-            finish(new Error('Could not initialize reCAPTCHA.'));
-        }
-    });
-}
-
+        });
+    }
 
     // --- Form Logic ---
     let currentTab = 0;
