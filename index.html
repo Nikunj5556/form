@@ -685,33 +685,67 @@
         });
     }
 
-    async function getRecaptchaToken() {
-        if (!RECAPTCHA_SITE_KEY || RECAPTCHA_SITE_KEY.includes('REPLACE_WITH_')) {
-            throw new Error('Add your Google reCAPTCHA v3 site key to the HTML before submitting.');
-        }
+  
+async function getRecaptchaToken() {
+    if (
+        !RECAPTCHA_SITE_KEY ||
+        RECAPTCHA_SITE_KEY.includes('REPLACE_WITH_')
+    ) {
+        throw new Error(
+            'Please configure your Google reCAPTCHA v3 site key.'
+        );
+    }
 
-        await loadRecaptcha();
+    await loadRecaptcha();
 
-        return new Promise((resolve, reject) => {
-            if (!window.grecaptcha) {
-                reject(new Error('reCAPTCHA did not initialize.'));
-                return;
-            }
+    return new Promise((resolve, reject) => {
+        let settled = false;
 
+        const finish = (error, token) => {
+            if (settled) return;
+            settled = true;
+            clearTimeout(timeout);
+
+            if (error) reject(error);
+            else resolve(token);
+        };
+
+        const timeout = setTimeout(() => {
+            finish(new Error(
+                'Google reCAPTCHA timed out. Check your site key, ' +
+                'registered domain, internet connection, or browser extensions.'
+            ));
+        }, 15000);
+
+        try {
             window.grecaptcha.ready(async () => {
                 try {
-                    const token = await window.grecaptcha.execute(RECAPTCHA_SITE_KEY, { action: 'submit' });
+                    const token = await window.grecaptcha.execute(
+                        RECAPTCHA_SITE_KEY,
+                        { action: 'submit' }
+                    );
+
                     if (!token) {
-                        reject(new Error('Could not generate the security token. Please try again.'));
+                        finish(new Error(
+                            'reCAPTCHA returned an empty token. Please retry.'
+                        ));
                         return;
                     }
-                    resolve(token);
+
+                    finish(null, token);
                 } catch (error) {
-                    reject(error);
+                    finish(new Error(
+                        'reCAPTCHA could not generate a token. ' +
+                        'Verify your v3 key and domain configuration.'
+                    ));
                 }
             });
-        });
-    }
+        } catch (error) {
+            finish(new Error('Could not initialize reCAPTCHA.'));
+        }
+    });
+}
+
 
     // --- Form Logic ---
     let currentTab = 0;
